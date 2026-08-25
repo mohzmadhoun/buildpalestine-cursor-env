@@ -49,3 +49,6 @@ WooCommerce, WP-CLI, and the coding-standards/test toolchain.
   repository, not part of the reusable environment.
 - Site title defaults to `BuildPalestine`. Local admin credentials remain the
   throwaway `admin` / `admin` pair from the source environment.
+- `install_test_suite` now probes both `x.y` and `x.y.0` wordpress-develop tags.
+  WordPress 7.1 reports `7.1` from WP-CLI while the develop archive is tagged
+  `7.1.0`, which made the original download 404.

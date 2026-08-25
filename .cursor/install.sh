@@ -336,26 +336,43 @@ install_wordpress() {
 install_test_suite() {
 	local version
 	version="$(wp_cli core version)"
+	# `wp core version` reports x.y for x.y.0 releases, but wordpress-develop
+	# tags the patch version (7.1 -> 7.1.0). Probe both before giving up.
+	local suite_tag='' candidate src
+	for candidate in "$version" "${version}.0"; do
+		if curl -fsSIL "https://github.com/WordPress/wordpress-develop/archive/refs/tags/${candidate}.tar.gz" >/dev/null 2>&1; then
+			suite_tag="$candidate"
+			break
+		fi
+	done
 
 	if [ -f "${WP_TESTS_LIB}/includes/bootstrap.php" ] &&
 		[ "$(cat "${WP_TESTS_LIB}/.wp-version" 2>/dev/null)" = "$version" ]; then
 		log "WordPress test suite ${version} already installed"
+	elif [ -z "$suite_tag" ]; then
+		warn "Could not find a wordpress-develop tag for ${version}; skipping the test suite"
 	else
-		log "Installing WordPress ${version} test suite"
+		log "Installing WordPress ${version} test suite (tag ${suite_tag})"
 		local tmp
 		tmp="$(mktemp -d)"
 		if ! curl -fsSL -o "${tmp}/develop.tar.gz" \
-			"https://github.com/WordPress/wordpress-develop/archive/refs/tags/${version}.tar.gz"; then
-			warn "Could not download the ${version} test suite; skipping"
+			"https://github.com/WordPress/wordpress-develop/archive/refs/tags/${suite_tag}.tar.gz"; then
+			warn "Could not download the ${suite_tag} test suite; skipping"
 			rm -rf "$tmp"
 			return 0
 		fi
 		tar -xzf "${tmp}/develop.tar.gz" -C "$tmp"
+		src="$(find "$tmp" -maxdepth 1 -type d -name 'wordpress-develop-*' | head -n 1)"
+		if [ -z "$src" ] || [ ! -d "${src}/tests/phpunit/includes" ]; then
+			warn "wordpress-develop ${suite_tag} archive did not contain the PHPUnit suite"
+			rm -rf "$tmp"
+			return 0
+		fi
 		sudo mkdir -p "$WP_TESTS_LIB"
 		sudo chown -R "$(id -un):$(id -gn)" "$WP_TESTS_LIB"
 		rm -rf "${WP_TESTS_LIB}/includes" "${WP_TESTS_LIB}/data"
-		cp -r "${tmp}/wordpress-develop-${version}/tests/phpunit/includes" "${WP_TESTS_LIB}/"
-		cp -r "${tmp}/wordpress-develop-${version}/tests/phpunit/data" "${WP_TESTS_LIB}/"
+		cp -r "${src}/tests/phpunit/includes" "${WP_TESTS_LIB}/"
+		cp -r "${src}/tests/phpunit/data" "${WP_TESTS_LIB}/"
 		echo "$version" >"${WP_TESTS_LIB}/.wp-version"
 		rm -rf "$tmp"
 	fi
