@@ -21,4 +21,17 @@ class Test_BP_Youtube_Lite_Plugin extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'eb-popup-container:has(.bp-yt-lite)', $css );
 		$this->assertStringContainsString( 'wp-block-embed__wrapper::before', $css );
 	}
+
+	public function test_excludes_stylesheet_from_litespeed_css_combine() {
+		$plugin = bp_youtube_lite();
+
+		$this->assertSame(
+			array( 'other.css', 'bp-youtube-lite' ),
+			$plugin->exclude_from_litespeed_css( array( 'other.css' ) )
+		);
+		$this->assertSame(
+			array( 'bp-youtube-lite' ),
+			$plugin->exclude_from_litespeed_css( '' )
+		);
+	}
 }

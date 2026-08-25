@@ -65,6 +65,8 @@ class BP_Youtube_Lite_Plugin {
 		add_filter( 'embed_oembed_html', array( $this, 'filter_embed_oembed_html' ), 10, 2 );
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), 20 );
 		add_filter( 'render_block', array( $this, 'filter_render_block' ), 10, 2 );
+		add_filter( 'litespeed_optimize_css_excludes', array( $this, 'exclude_from_litespeed_css' ) );
+		add_filter( 'litespeed_optimize_ucss_file_exc_inline', array( $this, 'exclude_from_litespeed_css' ) );
 	}
 
 	/**
@@ -91,6 +93,31 @@ class BP_Youtube_Lite_Plugin {
 			BP_YOUTUBE_LITE_VERSION,
 			true
 		);
+	}
+
+	/**
+	 * Keeps this plugin's CSS out of LiteSpeed combine/UCSS.
+	 *
+	 * Combined UCSS is generated from first-paint HTML, so it drops the
+	 * hero iframe cover rules (the iframe is injected later) and the popup
+	 * layout rules.
+	 *
+	 * @param mixed $excludes Existing LiteSpeed exclude list.
+	 * @return array<int, string>
+	 */
+	public function exclude_from_litespeed_css( $excludes ) {
+		if ( is_string( $excludes ) ) {
+			$parts    = preg_split( '/\r\n|\r|\n/', $excludes );
+			$excludes = ( false === $parts || '' === $excludes ) ? array() : $parts;
+		}
+
+		if ( ! is_array( $excludes ) ) {
+			$excludes = array();
+		}
+
+		$excludes[] = 'bp-youtube-lite';
+
+		return array_values( array_unique( $excludes ) );
 	}
 
 	/**
