@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       BuildPalestine YouTube Lite
  * Description:       Keeps YouTube off first paint: strips the homepage hero iframe API and replaces embeds with a click-to-play facade.
- * Version:           0.1.3
+ * Version:           0.1.4
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * License:           GPL-2.0-or-later
@@ -14,7 +14,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'BP_YOUTUBE_LITE_VERSION', '0.1.3' );
+define( 'BP_YOUTUBE_LITE_VERSION', '0.1.4' );
 define( 'BP_YOUTUBE_LITE_FILE', __FILE__ );
 define( 'BP_YOUTUBE_LITE_PATH', plugin_dir_path( __FILE__ ) );
 define( 'BP_YOUTUBE_LITE_URL', plugin_dir_url( __FILE__ ) );

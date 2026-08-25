@@ -27,11 +27,11 @@ class Test_BP_Youtube_Lite_Plugin extends WP_UnitTestCase {
 
 		$this->assertSame(
 			array( 'other.css', 'bp-youtube-lite' ),
-			$plugin->exclude_from_litespeed_css( array( 'other.css' ) )
+			$plugin->exclude_from_litespeed( array( 'other.css' ) )
 		);
 		$this->assertSame(
 			array( 'bp-youtube-lite' ),
-			$plugin->exclude_from_litespeed_css( '' )
+			$plugin->exclude_from_litespeed( '' )
 		);
 	}
 }

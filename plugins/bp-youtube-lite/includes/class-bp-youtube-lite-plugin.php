@@ -65,8 +65,9 @@ class BP_Youtube_Lite_Plugin {
 		add_filter( 'embed_oembed_html', array( $this, 'filter_embed_oembed_html' ), 10, 2 );
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), 20 );
 		add_filter( 'render_block', array( $this, 'filter_render_block' ), 10, 2 );
-		add_filter( 'litespeed_optimize_css_excludes', array( $this, 'exclude_from_litespeed_css' ) );
-		add_filter( 'litespeed_optimize_ucss_file_exc_inline', array( $this, 'exclude_from_litespeed_css' ) );
+		add_filter( 'litespeed_optimize_css_excludes', array( $this, 'exclude_from_litespeed' ) );
+		add_filter( 'litespeed_optimize_js_excludes', array( $this, 'exclude_from_litespeed' ) );
+		add_filter( 'litespeed_optimize_ucss_file_exc_inline', array( $this, 'exclude_from_litespeed' ) );
 	}
 
 	/**
@@ -96,16 +97,16 @@ class BP_Youtube_Lite_Plugin {
 	}
 
 	/**
-	 * Keeps this plugin's CSS out of LiteSpeed combine/UCSS.
+	 * Keeps this plugin's assets out of LiteSpeed combine/UCSS/minify.
 	 *
 	 * Combined UCSS is generated from first-paint HTML, so it drops the
 	 * hero iframe cover rules (the iframe is injected later) and the popup
-	 * layout rules.
+	 * layout rules. Minified JS copies can also lag behind source edits.
 	 *
 	 * @param mixed $excludes Existing LiteSpeed exclude list.
 	 * @return array<int, string>
 	 */
-	public function exclude_from_litespeed_css( $excludes ) {
+	public function exclude_from_litespeed( $excludes ) {
 		if ( is_string( $excludes ) ) {
 			$parts    = preg_split( '/\r\n|\r|\n/', $excludes );
 			$excludes = ( false === $parts || '' === $excludes ) ? array() : $parts;

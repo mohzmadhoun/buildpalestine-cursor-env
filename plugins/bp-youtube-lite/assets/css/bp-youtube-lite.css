@@ -107,7 +107,8 @@
 	padding-top: 56px;
 }
 
-.eb-popup-container:has(.bp-yt-lite) .eb-popup-content {
+.eb-popup-container:has(.bp-yt-lite) .eb-popup-content,
+.bp-yt-popup-content {
 	display: block !important;
 	width: min(90vw, calc((100vh - 120px) * 16 / 9)) !important;
 	height: auto !important;
@@ -119,7 +120,8 @@
 	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
-.admin-bar .eb-popup-container:has(.bp-yt-lite) .eb-popup-content {
+.admin-bar .eb-popup-container:has(.bp-yt-lite) .eb-popup-content,
+.admin-bar .bp-yt-popup-content {
 	width: min(90vw, calc((100vh - 152px) * 16 / 9)) !important;
 	max-height: calc(100vh - 152px) !important;
 }

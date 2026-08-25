@@ -70,13 +70,13 @@
 		}
 
 		hero.setAttribute("data-loaded", "bg");
-		hero.replaceChildren(
-			createIframe(
-				videoId,
-				hero.getAttribute("data-title") || "BuildPalestine video",
-				heroBackgroundQuery(videoId)
-			)
+		var iframe = createIframe(
+			videoId,
+			hero.getAttribute("data-title") || "BuildPalestine video",
+			heroBackgroundQuery(videoId)
 		);
+		hero.replaceChildren(iframe);
+		watchHeroCover(iframe);
 	}
 
 	function stopHeroBackground() {
@@ -118,7 +118,73 @@
 			.forEach(loadFacade);
 	}
 
+	function applyHeroCover(iframe) {
+		if (!iframe || !iframe.parentElement) {
+			return;
+		}
+
+		var host =
+			document.querySelector(".mzm-background-video") || iframe.parentElement;
+		var width = host.clientWidth;
+		var height = host.clientHeight;
+		if (!width || !height) {
+			return;
+		}
+
+		var coverWidth = Math.max(width, (height * 16) / 9);
+		var coverHeight = Math.max(height, (width * 9) / 16);
+
+		iframe.style.setProperty("position", "absolute", "important");
+		iframe.style.setProperty("top", "50%", "important");
+		iframe.style.setProperty("left", "50%", "important");
+		iframe.style.setProperty("width", coverWidth + "px", "important");
+		iframe.style.setProperty("height", coverHeight + "px", "important");
+		iframe.style.setProperty("max-width", "none", "important");
+		iframe.style.setProperty("max-height", "none", "important");
+		iframe.style.setProperty("min-width", "0", "important");
+		iframe.style.setProperty("min-height", "0", "important");
+		iframe.style.setProperty("border", "0", "important");
+		iframe.style.setProperty("transform", "translate(-50%, -50%)", "important");
+		iframe.style.pointerEvents = "none";
+	}
+
+	function watchHeroCover(iframe) {
+		applyHeroCover(iframe);
+
+		var host =
+			document.querySelector(".mzm-background-video") || iframe.parentElement;
+		if (!host) {
+			return;
+		}
+
+		if (host._bpYtCover && typeof host._bpYtCover.disconnect === "function") {
+			host._bpYtCover.disconnect();
+		}
+
+		if (typeof ResizeObserver === "function") {
+			var observer = new ResizeObserver(function () {
+				applyHeroCover(iframe);
+			});
+			host._bpYtCover = observer;
+			observer.observe(host);
+			return;
+		}
+
+		window.addEventListener("resize", function () {
+			applyHeroCover(iframe);
+		});
+	}
+
+	function preparePopupLayout() {
+		document.querySelectorAll(".eb-popup-content").forEach(function (content) {
+			if (content.querySelector(".bp-yt-lite")) {
+				content.classList.add("bp-yt-popup-content");
+			}
+		});
+	}
+
 	function onPopupOpened() {
+		preparePopupLayout();
 		stopHeroBackground();
 		loadPopupFacades();
 	}
@@ -151,6 +217,7 @@
 		});
 
 		document.addEventListener("DOMContentLoaded", function () {
+			preparePopupLayout();
 			document
 				.querySelectorAll(".eb-popup-overlay, .modal-main-wrap")
 				.forEach(function (el) {
