@@ -24,6 +24,37 @@ restates the diff.
 
 ---
 
+## PR — Reset the site and stage BuildPalestine UpdraftPlus backups
+
+_2026-08-25_
+
+### Summary
+
+Reset the local WordPress database with WP Reset, removed WooCommerce, AI
+Provider for OpenAI, and `mzm-current-year`, installed UpdraftPlus, and staged
+the 2026-08-23 BuildPalestine backup archives under
+`/var/www/wordpress/wp-content/updraft`.
+
+### Added
+
+- WP Reset and UpdraftPlus as part of environment install.
+- Idempotent download of the five UpdraftPlus backup archives.
+
+### Removed
+
+- WooCommerce and AI Provider for OpenAI from the default install path.
+- `plugins/mzm-current-year/` from the repository.
+
+### Notes
+
+- Direct `curl` of `buildpalestine.com/temp/` is blocked by a Cloudflare
+  challenge. The archives were downloaded in a real browser and are kept
+  outside Git so a snapshot can carry them.
+- WP Reset runs once, gated by `wp-content/.cursor-wp-reset-done`, so later
+  install runs do not wipe a restored site.
+
+---
+
 ## PR #1 — Initialize the Cloud Agent environment from cursor-testing-01
 
 _2026-08-25_

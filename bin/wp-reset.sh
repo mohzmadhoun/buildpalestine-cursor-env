@@ -40,21 +40,11 @@ wp_cli rewrite structure '/%postname%/'
 wp_cli option update timezone_string 'UTC'
 ensure_htaccess
 
-# The database reset cleared the active plugin list.
-install_ai_provider
-
-# The reset dropped WooCommerce's tables, settings, pages and products along with
-# everything else, so rebuild the store too.
-install_woocommerce
-
 link_repo_content
-
-log "Activating plugins from the repository"
-for dir in "${REPO_DIR}"/plugins/*/; do
-	[ -d "$dir" ] || continue
-	wp_cli plugin activate "$(basename "$dir")" || warn "Could not activate $(basename "$dir")"
-done
-
-wp_cli plugin activate query-monitor >/dev/null 2>&1 || true
+rm -f "$WP_RESET_MARKER"
+reset_wordpress_once
+remove_unwanted_plugins
+install_updraftplus
+download_updraft_backups
 
 site_summary
