@@ -41,6 +41,8 @@ centered (no 70vh grey header).
 - `plugins/bp-youtube-lite/`: strips `youtube.com/iframe_api` / `onYouTubeIframeAPIReady`
   from the hero HTML block, replaces YouTube iframes with a click-to-play poster,
   and injects `youtube.com/embed` only after first paint (muted hero) or Play (popup).
+- `exported-plugins/bp-youtube-lite-0.1.4.zip`: installable copy of the plugin (runtime
+  files only; tests and phpunit config are omitted).
 
 ### Fixed
 
