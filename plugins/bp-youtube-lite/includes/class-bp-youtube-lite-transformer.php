@@ -51,11 +51,19 @@ class BP_Youtube_Lite_Transformer {
 	/**
 	 * Removes the homepage hero YouTube IFrame API so the CSS poster can paint.
 	 *
+	 * Keeps `#yt-player` as an empty click-to-play target, with the video id
+	 * copied from the stripped player script.
+	 *
 	 * @param string $html HTML to transform.
 	 * @return string
 	 */
 	public function strip_hero_youtube_api( $html ) {
-		$html = (string) $html;
+		$html     = (string) $html;
+		$video_id = '';
+
+		if ( preg_match( '/videoId:\s*[\'"](' . self::VIDEO_ID_PATTERN . ')[\'"]/', $html, $matches ) ) {
+			$video_id = $matches[1];
+		}
 
 		$html = preg_replace(
 			'~<script[^>]+src=(["\'])https?://(?:www\.)?youtube\.com/iframe_api\1[^>]*>\s*</script>~i',
@@ -69,9 +77,15 @@ class BP_Youtube_Lite_Transformer {
 			$html
 		);
 
+		$hero = '<div id="yt-player" class="bp-yt-hero-player"';
+		if ( '' !== $video_id ) {
+			$hero .= ' data-video-id="' . esc_attr( $video_id ) . '"';
+		}
+		$hero .= '></div>';
+
 		$html = preg_replace(
-			'~<div id=(["\'])yt-player\1></div>~i',
-			'',
+			'~<div id=(["\'])yt-player\1(?:\s[^>]*)?></div>~i',
+			$hero,
 			$html
 		);
 

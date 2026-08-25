@@ -46,7 +46,8 @@ class Test_BP_Youtube_Lite_Transformer extends WP_UnitTestCase {
 
 		$this->assertStringNotContainsString( 'iframe_api', $output );
 		$this->assertStringNotContainsString( 'onYouTubeIframeAPIReady', $output );
-		$this->assertStringNotContainsString( 'yt-player', $output );
+		$this->assertStringContainsString( 'id="yt-player"', $output );
+		$this->assertStringContainsString( 'data-video-id="m_LNspjrlyM"', $output );
 		$this->assertStringContainsString( 'mzm-background-video', $output );
 		$this->assertStringContainsString( 'Palestinians are building their own liberation.', $output );
 	}
