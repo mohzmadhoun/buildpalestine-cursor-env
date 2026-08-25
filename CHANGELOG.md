@@ -24,7 +24,7 @@ restates the diff.
 
 ---
 
-## PR — Initialize the Cloud Agent environment from cursor-testing-01
+## PR #1 — Initialize the Cloud Agent environment from cursor-testing-01
 
 _2026-08-25_
 
