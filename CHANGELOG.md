@@ -44,8 +44,9 @@ visitor clicks Play.
 
 - The hero already has a CSS background image (`OrangeTruck.webp`), so removing the
   muted autoplay player does not leave a blank hero.
-- The Root Fellows video lives in an Essential Blocks popup. Clicking `.open-hero-video`
-  loads the facade immediately so play is still one click.
+- The Root Fellows video lives in an Essential Blocks popup. The hero autoplays a
+  muted looping copy after first paint. Clicking Play opens that popup with sound
+  and controls. The background player pauses while the popup is open.
 
 ### Verification
 

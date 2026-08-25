@@ -3,13 +3,13 @@
 
 	var VIDEO_ID = /^[a-zA-Z0-9_-]{11}$/;
 
-	function createIframe(videoId, title, extraQuery) {
+	function createIframe(videoId, title, query) {
 		var iframe = document.createElement("iframe");
 		iframe.src =
 			"https://www.youtube.com/embed/" +
 			encodeURIComponent(videoId) +
-			"?autoplay=1&rel=0&modestbranding=1&playsinline=1" +
-			(extraQuery || "");
+			"?" +
+			query;
 		iframe.title = title || "YouTube video";
 		iframe.allow =
 			"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
@@ -18,20 +18,16 @@
 		return iframe;
 	}
 
-	function loadFacade(facade) {
-		if (!facade || facade.getAttribute("data-loaded") === "1") {
-			return;
-		}
-
-		var videoId = facade.getAttribute("data-video-id") || "";
-		if (!VIDEO_ID.test(videoId)) {
-			return;
-		}
-
-		facade.setAttribute("data-loaded", "1");
-		facade.replaceChildren(
-			createIframe(videoId, facade.getAttribute("data-title") || "")
+	function heroBackgroundQuery(videoId) {
+		return (
+			"autoplay=1&mute=1&controls=0&loop=1&playlist=" +
+			encodeURIComponent(videoId) +
+			"&modestbranding=1&playsinline=1&rel=0"
 		);
+	}
+
+	function watchQuery() {
+		return "autoplay=1&rel=0&modestbranding=1&playsinline=1&controls=1";
 	}
 
 	function heroTarget() {
@@ -56,94 +52,133 @@
 		return "";
 	}
 
-	function playInHero() {
+	function isPopupOpen() {
+		return !!document.querySelector(
+			".eb-popup-overlay.active, .modal-main-wrap.active"
+		);
+	}
+
+	function startHeroBackground() {
+		if (isPopupOpen()) {
+			return;
+		}
+
 		var hero = heroTarget();
 		var videoId = heroVideoId();
-		if (!hero || !videoId) {
-			return false;
+		if (!hero || !videoId || hero.getAttribute("data-loaded") === "bg") {
+			return;
 		}
 
-		var section = hero.closest(".mzm-homepage-hero-section");
-		if (section) {
-			section.classList.add("is-playing-hero-video");
-		}
-
-		hero.setAttribute("data-loaded", "1");
+		hero.setAttribute("data-loaded", "bg");
 		hero.replaceChildren(
 			createIframe(
 				videoId,
 				hero.getAttribute("data-title") || "BuildPalestine video",
-				"&controls=1"
+				heroBackgroundQuery(videoId)
 			)
 		);
-		return true;
 	}
 
-	function stopHero() {
+	function stopHeroBackground() {
 		var hero = heroTarget();
 		if (!hero) {
 			return;
 		}
 		hero.replaceChildren();
 		hero.removeAttribute("data-loaded");
-		var section = hero.closest(".mzm-homepage-hero-section");
-		if (section) {
-			section.classList.remove("is-playing-hero-video");
+	}
+
+	function loadFacade(facade) {
+		if (!facade || facade.getAttribute("data-loaded") === "1") {
+			return;
+		}
+
+		var videoId = facade.getAttribute("data-video-id") || "";
+		if (!VIDEO_ID.test(videoId)) {
+			return;
+		}
+
+		if (!facade.getAttribute("data-original-html")) {
+			facade.setAttribute("data-original-html", facade.innerHTML);
+		}
+
+		facade.setAttribute("data-loaded", "1");
+		facade.replaceChildren(
+			createIframe(
+				videoId,
+				facade.getAttribute("data-title") || "",
+				watchQuery()
+			)
+		);
+	}
+
+	function loadPopupFacades() {
+		document
+			.querySelectorAll(".eb-popup-content .bp-yt-lite")
+			.forEach(loadFacade);
+	}
+
+	function onPopupOpened() {
+		stopHeroBackground();
+		loadPopupFacades();
+	}
+
+	function onPopupClosed() {
+		document
+			.querySelectorAll(".eb-popup-content .bp-yt-lite[data-loaded]")
+			.forEach(function (facade) {
+				var original = facade.getAttribute("data-original-html");
+				facade.removeAttribute("data-loaded");
+				if (original) {
+					facade.innerHTML = original;
+				} else {
+					facade.replaceChildren();
+				}
+			});
+		startHeroBackground();
+	}
+
+	if (typeof MutationObserver === "function") {
+		var popupWasOpen = false;
+		var observer = new MutationObserver(function () {
+			var open = isPopupOpen();
+			if (open && !popupWasOpen) {
+				onPopupOpened();
+			} else if (!open && popupWasOpen) {
+				onPopupClosed();
+			}
+			popupWasOpen = open;
+		});
+
+		document.addEventListener("DOMContentLoaded", function () {
+			document
+				.querySelectorAll(".eb-popup-overlay, .modal-main-wrap")
+				.forEach(function (el) {
+					observer.observe(el, {
+						attributes: true,
+						attributeFilter: ["class"],
+					});
+				});
+		});
+	}
+
+	function scheduleHeroAutoplay() {
+		var started = false;
+		function startOnce() {
+			if (started) {
+				return;
+			}
+			started = true;
+			startHeroBackground();
+		}
+
+		if ("requestIdleCallback" in window) {
+			window.requestIdleCallback(startOnce, { timeout: 1200 });
+		} else {
+			window.addEventListener("load", startOnce);
+			window.setTimeout(startOnce, 1200);
 		}
 	}
 
-	document.addEventListener(
-		"click",
-		function (event) {
-			var target = event.target;
-			if (!target || !target.closest) {
-				return;
-			}
-
-			if (target.closest(".open-hero-video")) {
-				event.preventDefault();
-				event.stopPropagation();
-				if (event.stopImmediatePropagation) {
-					event.stopImmediatePropagation();
-				}
-				playInHero();
-				return;
-			}
-
-			var facade = target.closest(".bp-yt-lite");
-			if (facade && !facade.closest(".mzm-homepage-hero-section")) {
-				event.preventDefault();
-				loadFacade(facade);
-			}
-		},
-		true
-	);
-
-	document.addEventListener(
-		"keydown",
-		function (event) {
-			if (event.key === "Escape") {
-				stopHero();
-				return;
-			}
-			if (event.key !== "Enter" && event.key !== " ") {
-				return;
-			}
-			var target = event.target;
-			if (!target || !target.closest) {
-				return;
-			}
-			if (target.closest(".open-hero-video")) {
-				event.preventDefault();
-				playInHero();
-				return;
-			}
-			var facade = target.closest(".bp-yt-lite");
-			if (facade && !facade.closest(".mzm-homepage-hero-section")) {
-				event.preventDefault();
-				loadFacade(facade);
-			}
-		},
-		true
-	);
+	scheduleHeroAutoplay();
 })();
