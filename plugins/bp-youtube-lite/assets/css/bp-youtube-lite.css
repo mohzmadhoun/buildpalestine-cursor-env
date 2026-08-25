@@ -65,3 +65,89 @@
 .bp-yt-hero-player:empty {
 	display: none;
 }
+
+/*
+ * Cover-scale the muted hero iframe so a 16:9 YouTube player fills the
+ * (usually wider) hero box. Without this the iframe stretches to the
+ * container and YouTube pillarboxes with black bars on the sides.
+ */
+.mzm-background-video iframe,
+.bp-yt-hero-player iframe {
+	position: absolute !important;
+	top: 50% !important;
+	left: 50% !important;
+	width: 100vw !important;
+	height: 56.25vw !important;
+	min-width: 177.78vh !important;
+	min-height: 100vh !important;
+	max-width: none !important;
+	max-height: none !important;
+	border: 0;
+	transform: translate(-50%, -50%) !important;
+	pointer-events: none;
+}
+
+/*
+ * Essential Blocks sizes this popup to 90% × 70vh with a contrast fill.
+ * WordPress then adds a ::before aspect spacer, so the player sits under a
+ * large empty grey block and the modal no longer looks centered.
+ */
+.eb-popup-container:has(.bp-yt-lite) .eb-modal-container {
+	align-items: center;
+	justify-content: center;
+	min-height: 100vh;
+	min-height: 100dvh;
+	padding: 24px;
+	box-sizing: border-box;
+}
+
+.admin-bar .eb-popup-container:has(.bp-yt-lite) .eb-modal-container {
+	min-height: calc(100vh - 32px);
+	min-height: calc(100dvh - 32px);
+	padding-top: 56px;
+}
+
+.eb-popup-container:has(.bp-yt-lite) .eb-popup-content {
+	display: block !important;
+	width: min(90vw, calc((100vh - 120px) * 16 / 9)) !important;
+	height: auto !important;
+	max-height: calc(100vh - 120px) !important;
+	margin: 0 auto;
+	padding: 0 !important;
+	overflow: hidden !important;
+	background: #000 !important;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.admin-bar .eb-popup-container:has(.bp-yt-lite) .eb-popup-content {
+	width: min(90vw, calc((100vh - 152px) * 16 / 9)) !important;
+	max-height: calc(100vh - 152px) !important;
+}
+
+.eb-popup-content .wp-block-embed,
+.eb-popup-content .wp-block-embed__wrapper {
+	margin: 0 !important;
+	width: 100% !important;
+}
+
+.eb-popup-content .wp-block-embed__wrapper::before {
+	content: none !important;
+	display: none !important;
+	padding-top: 0 !important;
+}
+
+.eb-popup-content .bp-yt-lite {
+	aspect-ratio: 16 / 9;
+	width: 100%;
+	height: auto;
+	max-height: inherit;
+	background: #000;
+}
+
+.eb-popup-content .bp-yt-lite iframe {
+	position: absolute !important;
+	inset: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+	max-height: none !important;
+}

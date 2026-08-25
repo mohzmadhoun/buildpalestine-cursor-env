@@ -2,7 +2,7 @@
 Requires at least: 6.5
 Tested up to: 7.0
 Requires PHP: 8.1
-Stable tag: 0.1.2
+Stable tag: 0.1.3
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,6 +15,10 @@ and replaces YouTube embeds with a thumbnail-and-play facade. The YouTube
 player is injected only after the visitor clicks Play.
 
 == Changelog ==
+
+= 0.1.3 =
+* Cover-scale the muted hero iframe so it fills the hero without black bars.
+* Size and center the Play popup on the 16:9 video (no grey header).
 
 = 0.1.2 =
 * Hero autoplays muted; Play opens the original popup.
