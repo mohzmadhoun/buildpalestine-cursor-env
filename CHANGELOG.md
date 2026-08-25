@@ -24,7 +24,7 @@ restates the diff.
 
 ---
 
-## PR — Stop YouTube from loading on first paint
+## PR #3 — Stop YouTube from loading on first paint
 
 _2026-08-25_
 
@@ -46,6 +46,18 @@ visitor clicks Play.
   muted autoplay player does not leave a blank hero.
 - The Root Fellows video lives in an Essential Blocks popup. Clicking `.open-hero-video`
   loads the facade immediately so play is still one click.
+
+### Verification
+
+- `composer check` passed (8 `bp-youtube-lite` tests, 14 `hello-cursor` tests).
+- Logged-out homepage HTML has no `iframe_api`, no `youtube.com/embed`; the only iframe is GTM.
+- Mobile Lighthouse: YouTube dropped from ~1.1 MB / many player requests to one 11 KB poster;
+  page weight 2527 KiB → 1412 KiB, requests 89 → 53, TTI 10.0 s → 7.7 s.
+- Browser: hero paints without YouTube; Play opens the popup and then loads YouTube.
+
+### Commits
+
+- `75a73e2` Keep YouTube off first paint with a click-to-play facade
 
 ---
 
