@@ -24,6 +24,31 @@ restates the diff.
 
 ---
 
+## PR — Stop YouTube from loading on first paint
+
+_2026-08-25_
+
+### Summary
+
+Added `bp-youtube-lite` so the homepage hero no longer autoplays YouTube via the
+IFrame API, and remaining YouTube embeds render as a thumbnail facade until the
+visitor clicks Play.
+
+### Added
+
+- `plugins/bp-youtube-lite/`: strips `youtube.com/iframe_api` / `onYouTubeIframeAPIReady`
+  from the hero HTML block, replaces YouTube iframes with a click-to-play poster,
+  and injects `youtube-nocookie.com` only after click (including the hero Play popup).
+
+### Notes
+
+- The hero already has a CSS background image (`OrangeTruck.webp`), so removing the
+  muted autoplay player does not leave a blank hero.
+- The Root Fellows video lives in an Essential Blocks popup. Clicking `.open-hero-video`
+  loads the facade immediately so play is still one click.
+
+---
+
 ## PR — Reset the site and stage BuildPalestine UpdraftPlus backups
 
 _2026-08-25_
