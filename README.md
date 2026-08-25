@@ -13,10 +13,9 @@ ask it to build and verify a plugin end to end.
 | Site | <http://localhost:8080> (port 8080 is forwarded, so it is also reachable from the agent's browser preview) |
 | Admin | <http://localhost:8080/wp-admin> — `admin` / `admin`, local-only throwaway credentials |
 | WordPress | Latest release, installed at `/var/www/wordpress` with `WP_DEBUG` and pretty permalinks on |
-| Store | WooCommerce, configured for development and stocked with the nine sample products in `data/sample-products.csv` |
-| AI | The official AI Provider for OpenAI, registered with WordPress 7's Connectors system |
+| Backups | UpdraftPlus with the 2026-08-23 BuildPalestine archives in `/var/www/wordpress/wp-content/updraft` |
 | Stack | Apache 2.4 + PHP 8.3 (mod_php) + MariaDB 10.11 |
-| Tools | WP-CLI, Composer, PHPUnit + WordPress test suite, PHPCS + WordPress Coding Standards, PHPStan, Query Monitor |
+| Tools | WP-CLI, Composer, PHPUnit + WordPress test suite, PHPCS + WordPress Coding Standards, PHPStan, WP Reset, Query Monitor |
 
 WordPress core lives outside the repository so it is never committed and survives
 branch switches. Only your own code is versioned: everything in `plugins/` (and
@@ -27,11 +26,10 @@ branch switches. Only your own code is versioned: everything in `plugins/` (and
 ```
 CHANGELOG.md               Running record of the work done, one entry per pull request
 .cursor/environment.json   Cloud Agent environment definition
-.cursor/install.sh         Builds the stack: packages, database, WordPress, WooCommerce, test suite
+.cursor/install.sh         Builds the stack: packages, database, WordPress, WP Reset, UpdraftPlus, backups
 .cursor/start.sh           Per-boot startup: MariaDB, Apache, plugin symlinks
 plugins/hello-cursor/      Reference plugin: settings page, shortcode, REST route, tests
-plugins/mzm-current-year/  Small example plugin with tests
-data/sample-products.csv   Sample catalogue, imported into WooCommerce on first install
+data/sample-products.csv   Sample catalogue (kept for optional store work)
 bin/new-plugin.sh          Scaffolds a new plugin
 bin/test.sh                Runs the PHPUnit suites
 bin/import-products.php    Imports a WooCommerce product CSV

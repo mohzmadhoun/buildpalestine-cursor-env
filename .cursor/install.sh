@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Builds the WordPress development stack: PHP, Apache, MariaDB, WP-CLI, a
-# working WordPress site, the core PHPUnit test suite, and Composer tooling.
+# working WordPress site, the core PHPUnit test suite, Composer tooling,
+# WP Reset, UpdraftPlus, and the BuildPalestine backup archives.
 #
 # Safe to re-run: every step converges on the same state.
 set -euo pipefail
@@ -327,7 +328,8 @@ install_wordpress() {
 		wp_cli plugin install query-monitor --activate || warn "Could not install Query Monitor (offline?)"
 	fi
 
-	if [ "$(wp_cli post list --post_type=post --format=count)" -le 1 ]; then
+	if [ ! -f "$WP_RESET_MARKER" ] &&
+		[ "$(wp_cli post list --post_type=post --format=count)" -le 1 ]; then
 		log "Generating sample posts"
 		wp_cli post generate --count=5 --post_type=post >/dev/null
 	fi
@@ -447,19 +449,13 @@ main() {
 	configure_apache
 	configure_database
 	install_wordpress
-	install_ai_provider
-	install_woocommerce
 	link_repo_content
 	install_test_suite
 	install_composer_dependencies
-
-	log "Activating plugins from the repository"
-	local dir name
-	for dir in "${REPO_DIR}"/plugins/*/; do
-		[ -d "$dir" ] || continue
-		name="$(basename "$dir")"
-		wp_cli plugin activate "$name" 2>/dev/null || warn "Could not activate ${name}"
-	done
+	reset_wordpress_once
+	remove_unwanted_plugins
+	install_updraftplus
+	download_updraft_backups
 
 	start_apache || true
 	site_summary

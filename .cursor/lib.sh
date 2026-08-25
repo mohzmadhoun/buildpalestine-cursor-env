@@ -255,6 +255,102 @@ seed_products() {
 		warn "Product import did not complete"
 }
 
+WP_RESET_MARKER="${WP_DIR}/wp-content/.cursor-wp-reset-done"
+UPDRAFT_DIR="${WP_DIR}/wp-content/updraft"
+UNWANTED_PLUGINS=(woocommerce ai-provider-for-openai mzm-current-year)
+UPDRAFT_BACKUP_BASE='https://buildpalestine.com/temp/backup_2026-08-23-1553_BuildPalestine_2ae9b0fdeac9'
+UPDRAFT_BACKUP_FILES=(
+	"${UPDRAFT_BACKUP_BASE}-db.gz"
+	"${UPDRAFT_BACKUP_BASE}-others.zip"
+	"${UPDRAFT_BACKUP_BASE}-plugins.zip"
+	"${UPDRAFT_BACKUP_BASE}-themes.zip"
+	"${UPDRAFT_BACKUP_BASE}-uploads.zip"
+)
+
+install_wp_reset() {
+	if ! wp_cli plugin is-installed wp-reset 2>/dev/null; then
+		log "Installing WP Reset"
+		if ! wp_cli plugin install wp-reset --activate; then
+			warn "Could not install WP Reset (offline?)"
+			return 1
+		fi
+	fi
+	wp_cli plugin activate wp-reset >/dev/null 2>&1 || true
+}
+
+reset_wordpress_once() {
+	install_wp_reset || return 0
+	if [ -f "$WP_RESET_MARKER" ]; then
+		log "WordPress has already been reset"
+		return 0
+	fi
+	log "Resetting the WordPress database with WP Reset"
+	wp_cli reset reset --yes
+	mkdir -p "$(dirname "$WP_RESET_MARKER")"
+	touch "$WP_RESET_MARKER"
+}
+
+remove_unwanted_plugins() {
+	local slug dest
+	log "Removing plugins: ${UNWANTED_PLUGINS[*]}"
+	for slug in "${UNWANTED_PLUGINS[@]}"; do
+		dest="${WP_DIR}/wp-content/plugins/${slug}"
+		if [ -L "$dest" ]; then
+			wp_cli plugin deactivate "$slug" >/dev/null 2>&1 || true
+			rm -f "$dest"
+		fi
+		if wp_cli plugin is-installed "$slug" 2>/dev/null; then
+			wp_cli plugin delete "$slug" || warn "Could not delete ${slug}"
+		fi
+	done
+}
+
+install_updraftplus() {
+	if ! wp_cli plugin is-installed updraftplus 2>/dev/null; then
+		log "Installing UpdraftPlus"
+		if ! wp_cli plugin install updraftplus --activate; then
+			warn "Could not install UpdraftPlus (offline?)"
+			return 0
+		fi
+	fi
+	wp_cli plugin activate updraftplus >/dev/null 2>&1 || true
+}
+
+download_updraft_backups() {
+	local url dest size kind
+	mkdir -p "$UPDRAFT_DIR"
+	log "Downloading UpdraftPlus backup archives into ${UPDRAFT_DIR}"
+	for url in "${UPDRAFT_BACKUP_FILES[@]}"; do
+		dest="${UPDRAFT_DIR}/$(basename "$url")"
+		if [ -f "$dest" ]; then
+			size="$(wc -c <"$dest")"
+			if [ "$size" -gt 1000000 ]; then
+				log "Already have $(basename "$dest") (${size} bytes)"
+				continue
+			fi
+			warn "$(basename "$dest") looks too small (${size} bytes); re-downloading"
+			rm -f "$dest"
+		fi
+		if ! curl -fsSL --retry 3 --retry-delay 2 \
+			-A 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' \
+			-o "$dest" "$url"; then
+			warn "Could not download ${url}"
+			rm -f "$dest"
+			continue
+		fi
+		kind="$(file -b "$dest")"
+		case "$kind" in
+		gzip* | Zip*)
+			log "Saved $(basename "$dest") ($(wc -c <"$dest") bytes)"
+			;;
+		*)
+			warn "Download of $(basename "$dest") was not an archive (${kind}); removing"
+			rm -f "$dest"
+			;;
+		esac
+	done
+}
+
 # WP-CLI runs under the CLI SAPI, so WordPress does not detect Apache and never
 # writes the rewrite block itself. Without it, pretty permalinks and /wp-json/
 # both return 404.
